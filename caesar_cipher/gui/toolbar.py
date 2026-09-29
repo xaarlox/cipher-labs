@@ -32,7 +32,9 @@ def build_file_toolbar(parent, *, on_new, on_open, on_save, on_print, on_exit, o
 def build_crypto_bar(parent, *, on_encrypt, on_decrypt):
     bar = ctk.CTkFrame(parent)
 
-    ctk.CTkLabel(bar, text="Ключ (ціле число):").pack(side="left", padx=(8, 2))
+    key_label = ctk.CTkLabel(bar, text="Ключ:")
+    key_label.pack(side="left", padx=(8, 2))
+
     key_entry = ctk.CTkEntry(bar, width=140, placeholder_text="Введіть ключ")
     key_entry.pack(side="left", padx=4, pady=6)
 
@@ -45,7 +47,7 @@ def build_crypto_bar(parent, *, on_encrypt, on_decrypt):
         fg_color=Colors.WARNING, hover_color=Colors.WARNING_HOVER,
     )
 
-    return bar, key_entry
+    return bar, key_label, key_entry
 
 
 def build_binary_tools_bar(parent, *, on_encrypt_file, on_decrypt_file):
@@ -55,13 +57,13 @@ def build_binary_tools_bar(parent, *, on_encrypt_file, on_decrypt_file):
         bar, text="Файл будь-якого формату (jpg, pdf, docx тощо):",
     ).pack(side="left", padx=(8, 2))
 
-    _button(
+    encrypt_btn = _button(
         bar, "Зашифрувати файл", on_encrypt_file, width=160,
         fg_color=Colors.TEAL, hover_color=Colors.TEAL_HOVER,
     )
-    _button(
+    decrypt_btn = _button(
         bar, "Розшифрувати файл", on_decrypt_file, width=170,
         fg_color=Colors.PURPLE, hover_color=Colors.PURPLE_HOVER,
     )
 
-    return bar
+    return bar, encrypt_btn, decrypt_btn

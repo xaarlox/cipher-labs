@@ -3,9 +3,10 @@ from tkinter import filedialog, messagebox
 
 import customtkinter as ctk
 
-from caesar_cipher.core import TextCaesarCipher, UniversalByteCaesarCipher, FileManager
-
+from caesar_cipher.core import TextCaesarCipher, UniversalByteCaesarCipher, TextTrithemiusCipher, FileManager
+from .cipher_selector import CipherSelector
 from .editor import Editor
+from .mode_info import CAESAR, MODE_INFO
 from .statusbar import StatusBar
 from .toolbar import build_binary_tools_bar, build_crypto_bar, build_file_toolbar
 from .utils import hide_hidden_files_in_dialogs, pick_monospace_font, scale_native_fonts
@@ -22,14 +23,12 @@ class CipherApp(ctk.CTk):
         super().__init__()
         scale_native_fonts(UI_SCALE)
 
-        self.title("Шифр Цезаря")
-        self.geometry("1600x900")
+        self.geometry("1700x1000")
         self.minsize(1100, 600)
 
         ctk.set_appearance_mode("system")
         ctk.set_default_color_theme("blue")
 
-        self.cipher = TextCaesarCipher()
         self.byte_cipher = UniversalByteCaesarCipher()
         self.current_file: Path | None = None
         self.editor_font = pick_monospace_font(self)
@@ -39,9 +38,12 @@ class CipherApp(ctk.CTk):
         self._bind_shortcuts()
 
         self.protocol("WM_DELETE_WINDOW", self.exit_app)
-        self._update_title()
+        self._on_mode_change(CAESAR)
 
     def _build_ui(self):
+        self.cipher_selector = CipherSelector(self, on_change=self._on_mode_change)
+        self.cipher_selector.pack(pady=(10, 4))
+
         file_toolbar = build_file_toolbar(
             self,
             on_new=self.new_file,
@@ -51,14 +53,14 @@ class CipherApp(ctk.CTk):
             on_exit=self.exit_app,
             on_about=self.show_about,
         )
-        file_toolbar.pack(fill="x", padx=8, pady=(8, 4))
+        file_toolbar.pack(fill="x", padx=8, pady=(4, 4))
 
-        crypto_bar, self.key_entry = build_crypto_bar(
+        crypto_bar, self.key_label, self.key_entry = build_crypto_bar(
             self, on_encrypt=self.encrypt, on_decrypt=self.decrypt,
         )
         crypto_bar.pack(fill="x", padx=8, pady=(0, 4))
 
-        binary_bar = build_binary_tools_bar(
+        binary_bar, self.encrypt_file_btn, self.decrypt_file_btn = build_binary_tools_bar(
             self, on_encrypt_file=self.encrypt_file, on_decrypt_file=self.decrypt_file,
         )
         binary_bar.pack(fill="x", padx=8, pady=(0, 4))
@@ -79,10 +81,14 @@ class CipherApp(ctk.CTk):
         self.bind("<Control-e>", lambda e: self.encrypt())
         self.bind("<Control-d>", lambda e: self.decrypt())
 
+    def _current_mode_info(self) -> dict:
+        return MODE_INFO[self.cipher_selector.choice]
+
     def _update_title(self):
         name = self.current_file.name if self.current_file else "Без назви"
         star = "*" if self.editor.is_modified() else ""
-        self.title(f"{name}{star} (Шифр Цезаря)")
+        suffix = self._current_mode_info()["title_suffix"]
+        self.title(f"{name}{star} ({suffix})")
 
     def _set_status(self, msg: str):
         self.status.set_text(msg)
@@ -156,21 +162,60 @@ class CipherApp(ctk.CTk):
         except Exception as err:
             messagebox.showerror("Помилка друку", str(err))
 
-    def _run_cipher(self, action, done_msg: str):
+    def _on_mode_change(self, choice: str):
+        if choice == "Цезар":
+            self.key_label.configure(text="Ключ (ціле число):")
+            self.key_entry.configure(placeholder_text="Наприклад: 3")
+        elif choice == "Тритеміус (Лінійний)":
+            self.key_label.configure(text="Ключ (A, B):")
+            self.key_entry.configure(placeholder_text="Наприклад: 2, 5")
+        elif choice == "Тритеміус (Нелінійний)":
+            self.key_label.configure(text="Ключ (A, B, C):")
+            self.key_entry.configure(placeholder_text="Наприклад: 1, 2, 3")
+        elif choice == "Тритеміус (Гасло)":
+            self.key_label.configure(text="Гасло:")
+            self.key_entry.configure(placeholder_text="Ваше слово")
+
+        state = "normal" if MODE_INFO[choice]["supports_binary_files"] else "disabled"
+        self.encrypt_file_btn.configure(state=state)
+        self.decrypt_file_btn.configure(state=state)
+
+        self._update_title()
+
+    def _get_active_cipher(self):
+        choice = self.cipher_selector.choice
+        if choice == "Цезар":
+            return TextCaesarCipher()
+        elif choice == "Тритеміус (Лінійний)":
+            return TextTrithemiusCipher(mode="linear")
+        elif choice == "Тритеміус (Нелінійний)":
+            return TextTrithemiusCipher(mode="quadratic")
+        elif choice == "Тритеміус (Гасло)":
+            return TextTrithemiusCipher(mode="passphrase")
+
+    def _run_cipher(self, is_encrypt: bool, done_msg: str):
+        cipher = self._get_active_cipher()
+        key = self.key_entry.get().strip()
+        text = self.editor.get_text()
+
         try:
-            result = action(self.editor.get_text(), self.key_entry.get().strip())
+            if is_encrypt:
+                result = cipher.encrypt(text, key)
+            else:
+                result = cipher.decrypt(text, key)
         except (ValueError, TypeError) as err:
             messagebox.showerror("Помилка", str(err))
             return
+
         self.editor.set_text(result)
         self.editor.mark_modified(True)
         self._set_status(done_msg)
 
     def encrypt(self):
-        self._run_cipher(self.cipher.encrypt, "Текст зашифровано")
+        self._run_cipher(is_encrypt=True, done_msg="Текст зашифровано")
 
     def decrypt(self):
-        self._run_cipher(self.cipher.decrypt, "Текст розшифровано")
+        self._run_cipher(is_encrypt=False, done_msg="Текст розшифровано")
 
     def _process_file(self, action, done_word: str, suggested_suffix: str = "", strip_suffix: str = ""):
         src_path = filedialog.askopenfilename(filetypes=ANY_FILE_TYPES)
@@ -201,21 +246,17 @@ class CipherApp(ctk.CTk):
         messagebox.showinfo("Готово", f"Файл успішно {done_word} та збережено:\n{dest_path}")
 
     def encrypt_file(self):
+        if not self._current_mode_info()["supports_binary_files"]:
+            return
         self._process_file(self.byte_cipher.encrypt, "зашифровано", suggested_suffix=".enc")
 
     def decrypt_file(self):
+        if not self._current_mode_info()["supports_binary_files"]:
+            return
         self._process_file(self.byte_cipher.decrypt, "розшифровано", strip_suffix=".enc")
 
     def show_about(self):
-        messagebox.showinfo(
-            "Про розробника",
-            "Лабораторна робота №1. Шифр Цезаря\n\n"
-            "Курс: 4\n"
-            "Група: ТВ-33\n"
-            "ПІБ: Федоренко Валерія Андріївна\n"
-            "GitHub: xaarlox\n"
-            "Версія: 1.0",
-        )
+        messagebox.showinfo("Про розробника", self._current_mode_info()["about"])
 
     def exit_app(self):
         if self._confirm_discard():
