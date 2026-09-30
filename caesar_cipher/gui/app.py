@@ -10,6 +10,7 @@ from .mode_info import CAESAR, MODE_INFO
 from .statusbar import StatusBar
 from .toolbar import build_binary_tools_bar, build_crypto_bar, build_file_toolbar
 from .utils import hide_hidden_files_in_dialogs, pick_monospace_font, scale_native_fonts
+from .attack_dialog import AttackDialog
 
 FILE_TYPES = [("Текстові файли", "*.txt"), ("Усі файли", "*.*")]
 ANY_FILE_TYPES = [("Усі файли", "*.*")]
@@ -55,8 +56,8 @@ class CipherApp(ctk.CTk):
         )
         file_toolbar.pack(fill="x", padx=8, pady=(4, 4))
 
-        crypto_bar, self.key_label, self.key_entry = build_crypto_bar(
-            self, on_encrypt=self.encrypt, on_decrypt=self.decrypt,
+        crypto_bar, self.key_label, self.key_entry, self.attack_btn = build_crypto_bar(
+            self, on_encrypt=self.encrypt, on_decrypt=self.decrypt, on_attack=self.show_attack_dialog
         )
         crypto_bar.pack(fill="x", padx=8, pady=(0, 4))
 
@@ -162,19 +163,26 @@ class CipherApp(ctk.CTk):
         except Exception as err:
             messagebox.showerror("Помилка друку", str(err))
 
+    def show_attack_dialog(self):
+        AttackDialog(self)
+
     def _on_mode_change(self, choice: str):
         if choice == "Цезар":
             self.key_label.configure(text="Ключ (ціле число):")
             self.key_entry.configure(placeholder_text="Наприклад: 3")
-        elif choice == "Тритеміус (Лінійний)":
-            self.key_label.configure(text="Ключ (A, B):")
-            self.key_entry.configure(placeholder_text="Наприклад: 2, 5")
-        elif choice == "Тритеміус (Нелінійний)":
-            self.key_label.configure(text="Ключ (A, B, C):")
-            self.key_entry.configure(placeholder_text="Наприклад: 1, 2, 3")
-        elif choice == "Тритеміус (Гасло)":
-            self.key_label.configure(text="Гасло:")
-            self.key_entry.configure(placeholder_text="Ваше слово")
+            self.attack_btn.configure(state="disabled")
+        else:
+            self.attack_btn.configure(state="normal")
+
+            if choice == "Тритеміус (Лінійний)":
+                self.key_label.configure(text="Ключ (A, B):")
+                self.key_entry.configure(placeholder_text="Наприклад: 2, 5")
+            elif choice == "Тритеміус (Нелінійний)":
+                self.key_label.configure(text="Ключ (A, B, C):")
+                self.key_entry.configure(placeholder_text="Наприклад: 1, 2, 3")
+            elif choice == "Тритеміус (Гасло)":
+                self.key_label.configure(text="Гасло:")
+                self.key_entry.configure(placeholder_text="Ваше слово")
 
         state = "normal" if MODE_INFO[choice]["supports_binary_files"] else "disabled"
         self.encrypt_file_btn.configure(state=state)

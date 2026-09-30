@@ -29,7 +29,7 @@ def build_file_toolbar(parent, *, on_new, on_open, on_save, on_print, on_exit, o
     return bar
 
 
-def build_crypto_bar(parent, *, on_encrypt, on_decrypt):
+def build_crypto_bar(parent, *, on_encrypt, on_decrypt, on_attack):
     bar = ctk.CTkFrame(parent)
 
     key_label = ctk.CTkLabel(bar, text="Ключ:")
@@ -47,7 +47,12 @@ def build_crypto_bar(parent, *, on_encrypt, on_decrypt):
         fg_color=Colors.WARNING, hover_color=Colors.WARNING_HOVER,
     )
 
-    return bar, key_label, key_entry
+    attack_btn = _button(
+        bar, "Атака (Аналіз)", on_attack, width=130,
+        fg_color=Colors.DANGER, hover_color=Colors.DANGER_HOVER,
+    )
+
+    return bar, key_label, key_entry, attack_btn
 
 
 def build_binary_tools_bar(parent, *, on_encrypt_file, on_decrypt_file):

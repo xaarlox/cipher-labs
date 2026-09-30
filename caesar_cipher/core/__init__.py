@@ -1,3 +1,4 @@
+from .attack import TrithemiusAttack
 from .ciphers import BaseCipher, TextCaesarCipher, UniversalByteCaesarCipher, TextTrithemiusCipher
 from .file_manager import FileManager
 from .validators import KeyValidator, DataValidator, TrithemiusKeyValidator
@@ -10,5 +11,6 @@ __all__ = [
     "FileManager",
     "KeyValidator",
     "DataValidator",
-    "TrithemiusKeyValidator"
+    "TrithemiusKeyValidator",
+    "TrithemiusAttack"
 ]
