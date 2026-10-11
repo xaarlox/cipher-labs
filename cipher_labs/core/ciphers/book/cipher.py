@@ -7,8 +7,6 @@ from .validators import DEFAULT_WIDTH, PoemKeyValidator, BookTextValidator, is_l
 
 SPACE_TOKEN = "_"
 
-# Якщо літери немає в ключі, пробуємо іншу (щ -> ш)
-_SUBSTITUTES = {"щ": "ш", "ґ": "г", "ї": "і", "є": "е"}
 _POSITION_RE = re.compile(r"^(\d+)\s*/\s*(\d+)$")
 
 
@@ -49,7 +47,7 @@ class PoemCipher(BaseCipher):
             if not is_letter(char):  # Цифри та розділові знаки не шифруються
                 continue
 
-            positions = index.get(char) or index.get(_SUBSTITUTES.get(char, ""))
+            positions = index.get(char)
             if not positions:
                 missing.add(char)
                 continue
@@ -107,7 +105,7 @@ class WordBookCipher(BaseCipher):
                 continue
             if not is_letter(char):
                 continue
-            numbers = index.get(char) or index.get(_SUBSTITUTES.get(char, ""))
+            numbers = index.get(char)
             if not numbers:
                 missing.add(char)
                 continue

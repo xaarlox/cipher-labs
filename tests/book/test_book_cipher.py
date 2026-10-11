@@ -38,9 +38,9 @@ class TestPoemCipher(unittest.TestCase):
         self.assertIn("_", code)
         self.assertEqual(cipher.decrypt(code, POEM), "мене на")
 
-    def test_shch_is_replaced_with_sh(self):
-        cipher = poem_cipher()
-        self.assertEqual(cipher.decrypt(cipher.encrypt("щ", POEM), POEM), "ш")
+    def test_letter_absent_from_poem_raises(self):
+        with self.assertRaises(ValueError):
+            poem_cipher().encrypt("щ", POEM)
 
     def test_missing_letter_raises(self):
         with self.assertRaises(ValueError):
