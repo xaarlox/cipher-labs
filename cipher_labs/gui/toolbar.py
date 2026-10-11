@@ -35,12 +35,15 @@ def build_crypto_bar(parent, *, on_encrypt, on_decrypt, on_attack, on_book_key):
     key_label = ctk.CTkLabel(bar, text="Ключ:")
     key_label.pack(side="left", padx=(8, 2))
 
-    key_entry = ctk.CTkEntry(bar, width=140, placeholder_text="Введіть ключ")
+    key_holder = ctk.CTkFrame(bar, fg_color="transparent")
+    key_holder.pack(side="left")
+
+    key_entry = ctk.CTkEntry(key_holder, width=140, placeholder_text="Введіть ключ")
     key_entry.pack(side="left", padx=4, pady=6)
 
-    book_btn = _button(
-        bar, "Вірш / текст-ключ…", on_book_key, width=190,
-        fg_color=Colors.PURPLE, hover_color=Colors.PURPLE_HOVER, state="disabled",
+    book_btn = ctk.CTkButton(
+        key_holder, text="Вибрати вірш...", width=210, command=on_book_key,
+        fg_color=Colors.PURPLE, hover_color=Colors.PURPLE_HOVER,
     )
 
     _button(
@@ -52,10 +55,11 @@ def build_crypto_bar(parent, *, on_encrypt, on_decrypt, on_attack, on_book_key):
         fg_color=Colors.WARNING, hover_color=Colors.WARNING_HOVER,
     )
 
-    attack_btn = _button(
-        bar, "Атака (Аналіз)", on_attack, width=130,
+    attack_btn = ctk.CTkButton(
+        bar, text="Атака (Аналіз)", width=130, command=on_attack,
         fg_color=Colors.DANGER, hover_color=Colors.DANGER_HOVER,
     )
+    attack_btn.pack(side="right", padx=4, pady=6)
 
     return bar, key_label, key_entry, attack_btn, book_btn
 

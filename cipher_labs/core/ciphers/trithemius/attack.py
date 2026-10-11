@@ -1,7 +1,7 @@
 from collections import Counter
 
-from .alphabets import ALPHABETS, find_alphabet
-from .validators import DataValidator
+from cipher_labs.core.alphabets import ALPHABETS, find_alphabet
+from cipher_labs.core.common_validators import DataValidator
 
 
 class TrithemiusAttack:

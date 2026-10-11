@@ -1,6 +1,6 @@
 import customtkinter as ctk
 
-from caesar_cipher.gui.colors import Colors
+from .colors import Colors
 
 TRITHEMIUS_MODES = ["Лінійний", "Нелінійний", "Гасло"]
 BOOK_MODES = ["Вірш", "Слова"]

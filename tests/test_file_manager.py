@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from caesar_cipher.core import FileManager
+from cipher_labs.core import FileManager
 
 
 class TestFileManager(unittest.TestCase):

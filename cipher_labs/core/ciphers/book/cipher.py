@@ -1,9 +1,9 @@
 import random
 import re
 
-from .book_cipher_validators import DEFAULT_WIDTH, BookTextValidator, PoemKeyValidator, is_letter
-from .ciphers import BaseCipher
-from .validators import DataValidator
+from cipher_labs.core.base import BaseCipher
+from cipher_labs.core.common_validators import DataValidator
+from .validators import DEFAULT_WIDTH, PoemKeyValidator, BookTextValidator, is_letter
 
 SPACE_TOKEN = "_"
 

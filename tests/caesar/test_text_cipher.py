@@ -1,6 +1,6 @@
 import unittest
 
-from caesar_cipher.core import TextCaesarCipher
+from cipher_labs.core import TextCaesarCipher
 
 
 class TestTextCaesarCipher(unittest.TestCase):

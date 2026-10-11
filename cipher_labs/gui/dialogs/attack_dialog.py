@@ -1,7 +1,7 @@
 from tkinter import messagebox
 import customtkinter as ctk
 
-from caesar_cipher.core import TrithemiusAttack
+from cipher_labs.core import TrithemiusAttack
 
 
 class AttackDialog(ctk.CTkToplevel):

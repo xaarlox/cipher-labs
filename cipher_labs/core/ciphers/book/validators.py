@@ -1,6 +1,6 @@
 import re
 
-from .alphabets import find_alphabet
+from cipher_labs.core.alphabets import find_alphabet
 
 DEFAULT_WIDTH = 10
 
@@ -35,7 +35,7 @@ class PoemKeyValidator:
                 rows.append(letters)
 
         if not rows:
-            raise ValueError("Вірш має містити хоча б один рядок з літерами (укр./англ.).")
+            raise ValueError("Вірш має містити хоча б один рядок з літерами (ukr/eng).")
         if len(rows) > 99:
             raise ValueError("Вірш занадто довгий: максимум 99 рядків.")
         return rows

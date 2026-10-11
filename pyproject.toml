@@ -1,5 +1,5 @@
 [project]
-name = "caesarcipher"
+name = "cipher-labs"
 version = "1.0.0"
 description = ""
 authors = [
@@ -14,3 +14,8 @@ dependencies = [
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest (>=9.1.1,<10.0.0)"
+]

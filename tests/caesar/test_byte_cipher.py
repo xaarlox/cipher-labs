@@ -1,6 +1,6 @@
 import unittest
 
-from caesar_cipher.core import UniversalByteCaesarCipher
+from cipher_labs.core import UniversalByteCaesarCipher
 
 
 class TestUniversalByteCaesarCipher(unittest.TestCase):

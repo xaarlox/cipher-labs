@@ -2,8 +2,8 @@ from tkinter import filedialog, messagebox
 
 import customtkinter as ctk
 
-from caesar_cipher.core import FileManager, PoemKeyValidator, BookTextValidator
-from caesar_cipher.gui.colors import Colors
+from cipher_labs.core import FileManager, PoemKeyValidator, BookTextValidator
+from cipher_labs.gui.colors import Colors
 
 
 class BookKeyDialog(ctk.CTkToplevel):
@@ -13,7 +13,7 @@ class BookKeyDialog(ctk.CTkToplevel):
         self._on_apply = on_apply
 
         self.title("Ключ: вірш" if poem_mode else "Ключ: текст книги")
-        self.geometry("900x720")
+        self.geometry("1300x900")
         self.transient(parent)
 
         label = "Вставте вірш (кожен рядок вірша — окремий рядок таблиці):" if poem_mode \
@@ -35,7 +35,7 @@ class BookKeyDialog(ctk.CTkToplevel):
             ctk.CTkButton(bar, text="Показати таблицю", width=160, command=self._refresh_preview).pack(
                 side="left", padx=6)
 
-        ctk.CTkButton(bar, text="З файлу…", width=100, command=self._load_file).pack(side="left", padx=6)
+        ctk.CTkButton(bar, text="З файлу...", width=100, command=self._load_file).pack(side="left", padx=6)
         ctk.CTkButton(
             bar, text="Застосувати", width=130, command=self._apply,
             fg_color=Colors.SUCCESS, hover_color=Colors.SUCCESS_HOVER,

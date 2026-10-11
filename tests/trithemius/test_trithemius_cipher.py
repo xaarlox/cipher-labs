@@ -1,6 +1,6 @@
 import unittest
 
-from caesar_cipher.core import TextTrithemiusCipher
+from cipher_labs.core import TextTrithemiusCipher
 
 
 class TestTextTrithemiusCipher(unittest.TestCase):

@@ -3,16 +3,22 @@ from tkinter import filedialog, messagebox
 
 import customtkinter as ctk
 
-from caesar_cipher.core import TextCaesarCipher, UniversalByteCaesarCipher, TextTrithemiusCipher, FileManager, \
-    DEFAULT_WIDTH, PoemCipher, WordBookCipher
-from .book_key_dialog import BookKeyDialog
+from cipher_labs.core import (
+    DEFAULT_WIDTH,
+    FileManager,
+    PoemCipher,
+    TextCaesarCipher,
+    TextTrithemiusCipher,
+    UniversalByteCaesarCipher,
+    WordBookCipher,
+)
 from .cipher_selector import CipherSelector
+from .dialogs import AttackDialog, BookKeyDialog
 from .editor import Editor
-from .mode_info import CAESAR, MODE_INFO, BOOK_POEM, BOOK_MODES
+from .mode_info import BOOK_MODES, BOOK_POEM, CAESAR, MODE_INFO
 from .statusbar import StatusBar
 from .toolbar import build_binary_tools_bar, build_crypto_bar, build_file_toolbar
 from .utils import hide_hidden_files_in_dialogs, pick_monospace_font, scale_native_fonts
-from .attack_dialog import AttackDialog
 
 FILE_TYPES = [("Текстові файли", "*.txt"), ("Усі файли", "*.*")]
 ANY_FILE_TYPES = [("Усі файли", "*.*")]
@@ -26,7 +32,7 @@ class CipherApp(ctk.CTk):
         super().__init__()
         scale_native_fonts(UI_SCALE)
 
-        self.geometry("1700x1000")
+        self.geometry("1800x1000")
         self.minsize(1100, 600)
 
         ctk.set_appearance_mode("system")
@@ -189,8 +195,16 @@ class CipherApp(ctk.CTk):
 
     def _on_mode_change(self, choice: str):
         is_book = choice in BOOK_MODES
-        self.key_entry.configure(state="disabled" if is_book else "normal")
-        self.book_btn.configure(state="normal" if is_book else "disabled")
+
+        if is_book:
+            self.key_entry.pack_forget()
+            self.book_btn.pack(side="left", padx=4, pady=6)
+            self.book_btn.configure(
+                text="Вибрати вірш..." if choice == BOOK_POEM else "Вибрати текст книги.."
+            )
+        else:
+            self.book_btn.pack_forget()
+            self.key_entry.pack(side="left", padx=4, pady=6)
 
         if choice == CAESAR:
             self.key_label.configure(text="Ключ (ціле число):")
@@ -198,7 +212,7 @@ class CipherApp(ctk.CTk):
             self.attack_btn.configure(state="disabled")
 
         elif is_book:
-            self.key_label.configure(text="Ключ: задається кнопкою →")
+            self.key_label.configure(text="Ключ задається кнопкою:")
             self.attack_btn.configure(state="disabled")
 
         else:

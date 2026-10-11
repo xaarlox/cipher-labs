@@ -47,7 +47,7 @@ MODE_INFO = {
         "about": _BOOK_ABOUT,
     },
     BOOK_WORDS: {
-        "title_suffix": "Книжковий шифр (за словами)",
+        "title_suffix": "Книжковий шифр",
         "supports_binary_files": False,
         "about": _BOOK_ABOUT,
     },
