@@ -29,7 +29,7 @@ def build_file_toolbar(parent, *, on_new, on_open, on_save, on_print, on_exit, o
     return bar
 
 
-def build_crypto_bar(parent, *, on_encrypt, on_decrypt, on_attack):
+def build_crypto_bar(parent, *, on_encrypt, on_decrypt, on_attack, on_book_key):
     bar = ctk.CTkFrame(parent)
 
     key_label = ctk.CTkLabel(bar, text="Ключ:")
@@ -37,6 +37,11 @@ def build_crypto_bar(parent, *, on_encrypt, on_decrypt, on_attack):
 
     key_entry = ctk.CTkEntry(bar, width=140, placeholder_text="Введіть ключ")
     key_entry.pack(side="left", padx=4, pady=6)
+
+    book_btn = _button(
+        bar, "Вірш / текст-ключ…", on_book_key, width=190,
+        fg_color=Colors.PURPLE, hover_color=Colors.PURPLE_HOVER, state="disabled",
+    )
 
     _button(
         bar, "Зашифрувати", on_encrypt, width=130,
@@ -52,7 +57,7 @@ def build_crypto_bar(parent, *, on_encrypt, on_decrypt, on_attack):
         fg_color=Colors.DANGER, hover_color=Colors.DANGER_HOVER,
     )
 
-    return bar, key_label, key_entry, attack_btn
+    return bar, key_label, key_entry, attack_btn, book_btn
 
 
 def build_binary_tools_bar(parent, *, on_encrypt_file, on_decrypt_file):

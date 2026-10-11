@@ -3,10 +3,12 @@ from tkinter import filedialog, messagebox
 
 import customtkinter as ctk
 
-from caesar_cipher.core import TextCaesarCipher, UniversalByteCaesarCipher, TextTrithemiusCipher, FileManager
+from caesar_cipher.core import TextCaesarCipher, UniversalByteCaesarCipher, TextTrithemiusCipher, FileManager, \
+    DEFAULT_WIDTH, PoemCipher, WordBookCipher
+from .book_key_dialog import BookKeyDialog
 from .cipher_selector import CipherSelector
 from .editor import Editor
-from .mode_info import CAESAR, MODE_INFO
+from .mode_info import CAESAR, MODE_INFO, BOOK_POEM, BOOK_MODES
 from .statusbar import StatusBar
 from .toolbar import build_binary_tools_bar, build_crypto_bar, build_file_toolbar
 from .utils import hide_hidden_files_in_dialogs, pick_monospace_font, scale_native_fonts
@@ -35,6 +37,9 @@ class CipherApp(ctk.CTk):
         self.editor_font = pick_monospace_font(self)
         hide_hidden_files_in_dialogs(self)
 
+        self.book_text = ""
+        self.book_width = DEFAULT_WIDTH
+
         self._build_ui()
         self._bind_shortcuts()
 
@@ -56,8 +61,9 @@ class CipherApp(ctk.CTk):
         )
         file_toolbar.pack(fill="x", padx=8, pady=(4, 4))
 
-        crypto_bar, self.key_label, self.key_entry, self.attack_btn = build_crypto_bar(
-            self, on_encrypt=self.encrypt, on_decrypt=self.decrypt, on_attack=self.show_attack_dialog
+        crypto_bar, self.key_label, self.key_entry, self.attack_btn, self.book_btn = build_crypto_bar(
+            self, on_encrypt=self.encrypt, on_decrypt=self.decrypt,
+            on_attack=self.show_attack_dialog, on_book_key=self.show_book_key_dialog,
         )
         crypto_bar.pack(fill="x", padx=8, pady=(0, 4))
 
@@ -166,11 +172,35 @@ class CipherApp(ctk.CTk):
     def show_attack_dialog(self):
         AttackDialog(self)
 
+    def show_book_key_dialog(self):
+        BookKeyDialog(
+            self, text=self.book_text, width=self.book_width,
+            poem_mode=self.cipher_selector.choice == BOOK_POEM, on_apply=self._set_book_key,
+        )
+
+    def _set_book_key(self, text, width):
+        self.book_text, self.book_width = text, width
+        self._set_status("Ключ-текст задано")
+
+    def _current_key(self):
+        if self.cipher_selector.choice in BOOK_MODES:
+            return self.book_text
+        return self.key_entry.get().strip()
+
     def _on_mode_change(self, choice: str):
-        if choice == "Цезар":
+        is_book = choice in BOOK_MODES
+        self.key_entry.configure(state="disabled" if is_book else "normal")
+        self.book_btn.configure(state="normal" if is_book else "disabled")
+
+        if choice == CAESAR:
             self.key_label.configure(text="Ключ (ціле число):")
             self.key_entry.configure(placeholder_text="Наприклад: 3")
             self.attack_btn.configure(state="disabled")
+
+        elif is_book:
+            self.key_label.configure(text="Ключ: задається кнопкою →")
+            self.attack_btn.configure(state="disabled")
+
         else:
             self.attack_btn.configure(state="normal")
 
@@ -200,10 +230,14 @@ class CipherApp(ctk.CTk):
             return TextTrithemiusCipher(mode="quadratic")
         elif choice == "Тритеміус (Гасло)":
             return TextTrithemiusCipher(mode="passphrase")
+        elif choice == BOOK_POEM:
+            return PoemCipher(width=self.book_width)
+        elif choice == BOOK_MODES[1]:
+            return WordBookCipher()
 
     def _run_cipher(self, is_encrypt: bool, done_msg: str):
         cipher = self._get_active_cipher()
-        key = self.key_entry.get().strip()
+        key = self._current_key()
         text = self.editor.get_text()
 
         try:
