@@ -1,5 +1,6 @@
 import customtkinter as ctk
 
+from cipher_labs.core import SYMMETRIC_ALGORITHMS, SYMMETRIC_MODES
 from .colors import Colors
 
 TRITHEMIUS_MODES = ["Лінійний", "Нелінійний", "Гасло"]
@@ -14,7 +15,7 @@ class CipherSelector:
 
         self._type = ctk.CTkSegmentedButton(
             self.frame,
-            values=["Цезар", "Тритеміус", "Книжковий"],
+            values=["Цезар", "Тритеміус", "Книжковий", *SYMMETRIC_ALGORITHMS],
             command=self._on_type_change,
             selected_color=Colors.TEAL,
             selected_hover_color=Colors.TEAL_HOVER,
@@ -27,6 +28,7 @@ class CipherSelector:
 
         self._trithemius_mode = self._make_sub_selector(TRITHEMIUS_MODES)
         self._book_mode = self._make_sub_selector(BOOK_MODES)
+        self._symmetric_mode = self._make_sub_selector(list(SYMMETRIC_MODES))
 
     def _make_sub_selector(self, values):
         button = ctk.CTkSegmentedButton(
@@ -52,15 +54,20 @@ class CipherSelector:
             return f"Тритеміус ({self._trithemius_mode.get()})"
         if kind == "Книжковий":
             return f"Книжковий ({self._book_mode.get()})"
+        if kind in SYMMETRIC_ALGORITHMS:
+            return f"{kind} ({self._symmetric_mode.get()})"
         return "Цезар"
 
     def _on_type_change(self, value: str) -> None:
         self._trithemius_mode.pack_forget()
         self._book_mode.pack_forget()
+        self._symmetric_mode.pack_forget()
         if value == "Тритеміус":
             self._trithemius_mode.pack(pady=(6, 4))
         elif value == "Книжковий":
             self._book_mode.pack(pady=(6, 4))
+        elif value in SYMMETRIC_ALGORITHMS:
+            self._symmetric_mode.pack(pady=(6, 4))
         self._notify()
 
     def _notify(self) -> None:

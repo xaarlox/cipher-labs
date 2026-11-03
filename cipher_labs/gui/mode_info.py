@@ -1,3 +1,5 @@
+from cipher_labs.core import SYMMETRIC_ALGORITHMS, SYMMETRIC_MODES
+
 CAESAR = "Цезар"
 BOOK_POEM = "Книжковий (Вірш)"
 BOOK_WORDS = "Книжковий (Слова)"
@@ -55,3 +57,35 @@ MODE_INFO = {
 
 MODE_INFO["Тритеміус (Нелінійний)"] = MODE_INFO["Тритеміус (Лінійний)"]
 MODE_INFO["Тритеміус (Гасло)"] = MODE_INFO["Тритеміус (Лінійний)"]
+
+_SYMMETRIC_ABOUT = (
+    "Лабораторна робота №5. Шифри DES/TripleDES/AES\n\n"
+    "Курс: 4\n"
+    "Група: ТВ-33\n"
+    "ПІБ: Федоренко Валерія Андріївна\n"
+    "GitHub: xaarlox\n"
+    "Версія: 5.0"
+)
+
+# (підпис ключа, приклад ключа, приклад IV)
+SYMMETRIC_HINTS = {
+    "DES": ("Ключ (8 байт):", "ABCDEFGH", "ABCDEFGH"),
+    "3DES": ("Ключ (16/24 байти):", "ABCDEFGHIJKLMNOP", "ABCDEFGH"),
+    "AES": ("Ключ (16/24/32 байти):", "0123456789ABCDEF", "ABCDEFGHIJKLMNOP"),
+}
+
+for _algorithm in SYMMETRIC_ALGORITHMS:
+    for _mode in SYMMETRIC_MODES:
+        MODE_INFO[f"{_algorithm} ({_mode})"] = {
+            "title_suffix": f"{_algorithm}, режим {_mode}",
+            "supports_binary_files": True,
+            "about": _SYMMETRIC_ABOUT,
+        }
+
+
+def parse_symmetric(choice: str) -> tuple[str, str] | None:
+    name, _, rest = choice.partition(" (")
+    mode = rest.rstrip(")")
+    if name in SYMMETRIC_ALGORITHMS and mode in SYMMETRIC_MODES:
+        return name, mode
+    return None

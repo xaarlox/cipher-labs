@@ -7,6 +7,7 @@ from cipher_labs.core import (
     DEFAULT_WIDTH,
     FileManager,
     PoemCipher,
+    SymmetricCipher,
     TextCaesarCipher,
     TextTrithemiusCipher,
     UniversalByteCaesarCipher,
@@ -15,7 +16,7 @@ from cipher_labs.core import (
 from .cipher_selector import CipherSelector
 from .dialogs import AttackDialog, BookKeyDialog
 from .editor import Editor
-from .mode_info import BOOK_MODES, BOOK_POEM, CAESAR, MODE_INFO
+from .mode_info import BOOK_MODES, BOOK_POEM, CAESAR, MODE_INFO, SYMMETRIC_HINTS, parse_symmetric
 from .statusbar import StatusBar
 from .toolbar import build_binary_tools_bar, build_crypto_bar, build_file_toolbar
 from .utils import hide_hidden_files_in_dialogs, pick_monospace_font, scale_native_fonts
@@ -67,7 +68,8 @@ class CipherApp(ctk.CTk):
         )
         file_toolbar.pack(fill="x", padx=8, pady=(4, 4))
 
-        crypto_bar, self.key_label, self.key_entry, self.attack_btn, self.book_btn = build_crypto_bar(
+        (crypto_bar, self.key_label, self.key_entry, self.attack_btn,
+         self.book_btn, self.iv_holder, self.iv_entry) = build_crypto_bar(
             self, on_encrypt=self.encrypt, on_decrypt=self.decrypt,
             on_attack=self.show_attack_dialog, on_book_key=self.show_book_key_dialog,
         )
@@ -195,6 +197,12 @@ class CipherApp(ctk.CTk):
 
     def _on_mode_change(self, choice: str):
         is_book = choice in BOOK_MODES
+        symmetric = parse_symmetric(choice)
+
+        if symmetric and symmetric[1] != "ECB":
+            self.iv_holder.pack(side="left", after=self.key_entry.master)
+        else:
+            self.iv_holder.pack_forget()
 
         if is_book:
             self.key_entry.pack_forget()
@@ -213,6 +221,13 @@ class CipherApp(ctk.CTk):
 
         elif is_book:
             self.key_label.configure(text="Ключ задається кнопкою:")
+            self.attack_btn.configure(state="disabled")
+
+        elif symmetric:
+            label, key_example, iv_example = SYMMETRIC_HINTS[symmetric[0]]
+            self.key_label.configure(text=label)
+            self.key_entry.configure(placeholder_text=f"{key_example} або hex:...")
+            self.iv_entry.configure(placeholder_text=iv_example)
             self.attack_btn.configure(state="disabled")
 
         else:
@@ -236,6 +251,12 @@ class CipherApp(ctk.CTk):
 
     def _get_active_cipher(self):
         choice = self.cipher_selector.choice
+
+        symmetric = parse_symmetric(choice)
+        if symmetric:
+            algorithm, mode = symmetric
+            return SymmetricCipher(algorithm, mode, iv=self.iv_entry.get().strip())
+
         if choice == "Цезар":
             return TextCaesarCipher()
         elif choice == "Тритеміус (Лінійний)":
@@ -301,15 +322,21 @@ class CipherApp(ctk.CTk):
         self._set_status(f"Файл {done_word}: {dest_path}")
         messagebox.showinfo("Готово", f"Файл успішно {done_word} та збережено:\n{dest_path}")
 
+    def _bytes_action(self, is_encrypt: bool):
+        if parse_symmetric(self.cipher_selector.choice):
+            cipher = self._get_active_cipher()
+            return cipher.encrypt_bytes if is_encrypt else cipher.decrypt_bytes
+        return self.byte_cipher.encrypt if is_encrypt else self.byte_cipher.decrypt
+
     def encrypt_file(self):
         if not self._current_mode_info()["supports_binary_files"]:
             return
-        self._process_file(self.byte_cipher.encrypt, "зашифровано", suggested_suffix=".enc")
+        self._process_file(self._bytes_action(True), "зашифровано", suggested_suffix=".enc")
 
     def decrypt_file(self):
         if not self._current_mode_info()["supports_binary_files"]:
             return
-        self._process_file(self.byte_cipher.decrypt, "розшифровано", strip_suffix=".enc")
+        self._process_file(self._bytes_action(False), "розшифровано", strip_suffix=".enc")
 
     def show_about(self):
         messagebox.showinfo("Про розробника", self._current_mode_info()["about"])

@@ -14,6 +14,10 @@ from .ciphers import (
     TrithemiusKeyValidator,
     UniversalByteCaesarCipher,
     WordBookCipher,
+    SymmetricCipher,
+    SymmetricValidator,
+    SYMMETRIC_ALGORITHMS,
+    SYMMETRIC_MODES,
 )
 
 __all__ = [
@@ -31,5 +35,9 @@ __all__ = [
     "BookTextValidator",
     "PoemCipher",
     "WordBookCipher",
+    "SymmetricCipher",
+    "SymmetricValidator",
+    "SYMMETRIC_ALGORITHMS",
+    "SYMMETRIC_MODES",
     "DEFAULT_WIDTH",
 ]

@@ -46,6 +46,11 @@ def build_crypto_bar(parent, *, on_encrypt, on_decrypt, on_attack, on_book_key):
         fg_color=Colors.PURPLE, hover_color=Colors.PURPLE_HOVER,
     )
 
+    iv_holder = ctk.CTkFrame(bar, fg_color="transparent")  # показується лише для DES/3DES/AES (крім ECB)
+    ctk.CTkLabel(iv_holder, text="IV:").pack(side="left", padx=(8, 2))
+    iv_entry = ctk.CTkEntry(iv_holder, width=140, placeholder_text="Вектор ініціалізації")
+    iv_entry.pack(side="left", padx=4, pady=6)
+
     _button(
         bar, "Зашифрувати", on_encrypt, width=130,
         fg_color=Colors.SUCCESS, hover_color=Colors.SUCCESS_HOVER,
@@ -61,7 +66,7 @@ def build_crypto_bar(parent, *, on_encrypt, on_decrypt, on_attack, on_book_key):
     )
     attack_btn.pack(side="right", padx=4, pady=6)
 
-    return bar, key_label, key_entry, attack_btn, book_btn
+    return bar, key_label, key_entry, attack_btn, book_btn, iv_holder, iv_entry
 
 
 def build_binary_tools_bar(parent, *, on_encrypt_file, on_decrypt_file):
