@@ -4,6 +4,7 @@ CAESAR = "Цезар"
 BOOK_POEM = "Книжковий (Вірш)"
 BOOK_WORDS = "Книжковий (Слова)"
 BOOK_MODES = (BOOK_POEM, BOOK_WORDS)
+RSA_MODES = {"RSA (Текст)": "text", "RSA (Числа)": "numbers"}
 
 _CAESAR_ABOUT = (
     "Лабораторна робота №1. Шифр Цезаря\n\n"
@@ -89,3 +90,20 @@ def parse_symmetric(choice: str) -> tuple[str, str] | None:
     if name in SYMMETRIC_ALGORITHMS and mode in SYMMETRIC_MODES:
         return name, mode
     return None
+
+
+_RSA_ABOUT = (
+    "Лабораторна робота №7. Шифр RSA\n\n"
+    "Курс: 4\n"
+    "Група: ТВ-33\n"
+    "ПІБ: Федоренко Валерія Андріївна\n"
+    "GitHub: xaarlox\n"
+    "Версія: 7.0"
+)
+
+for _choice in RSA_MODES:
+    MODE_INFO[_choice] = {
+        "title_suffix": "Шифр RSA",
+        "supports_binary_files": False,
+        "about": _RSA_ABOUT,
+    }

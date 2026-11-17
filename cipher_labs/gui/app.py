@@ -7,6 +7,7 @@ from cipher_labs.core import (
     DEFAULT_WIDTH,
     FileManager,
     PoemCipher,
+    RSACipher,
     SymmetricCipher,
     TextCaesarCipher,
     TextTrithemiusCipher,
@@ -14,9 +15,9 @@ from cipher_labs.core import (
     WordBookCipher,
 )
 from .cipher_selector import CipherSelector
-from .dialogs import AttackDialog, BookKeyDialog
+from .dialogs import AttackDialog, BookKeyDialog, RSAAttackDialog, RSAKeyDialog
 from .editor import Editor
-from .mode_info import BOOK_MODES, BOOK_POEM, CAESAR, MODE_INFO, SYMMETRIC_HINTS, parse_symmetric
+from .mode_info import BOOK_MODES, BOOK_POEM, CAESAR, MODE_INFO, RSA_MODES, SYMMETRIC_HINTS, parse_symmetric
 from .statusbar import StatusBar
 from .toolbar import build_binary_tools_bar, build_crypto_bar, build_file_toolbar
 from .utils import hide_hidden_files_in_dialogs, pick_monospace_font, scale_native_fonts
@@ -47,6 +48,8 @@ class CipherApp(ctk.CTk):
         self.book_text = ""
         self.book_width = DEFAULT_WIDTH
 
+        self.rsa_key = None
+
         self._build_ui()
         self._bind_shortcuts()
 
@@ -71,7 +74,7 @@ class CipherApp(ctk.CTk):
         (crypto_bar, self.key_label, self.key_entry, self.attack_btn,
          self.book_btn, self.iv_holder, self.iv_entry) = build_crypto_bar(
             self, on_encrypt=self.encrypt, on_decrypt=self.decrypt,
-            on_attack=self.show_attack_dialog, on_book_key=self.show_book_key_dialog,
+            on_attack=self.show_attack_dialog, on_book_key=self.show_key_dialog,
         )
         crypto_bar.pack(fill="x", padx=8, pady=(0, 4))
 
@@ -178,7 +181,24 @@ class CipherApp(ctk.CTk):
             messagebox.showerror("Помилка друку", str(err))
 
     def show_attack_dialog(self):
-        AttackDialog(self)
+        choice = self.cipher_selector.choice
+        if choice in RSA_MODES:
+            RSAAttackDialog(
+                self, public_key=self.rsa_key, ciphertext=self.editor.get_text(), mode=RSA_MODES[choice],
+            )
+        else:
+            AttackDialog(self)
+
+    def show_key_dialog(self):
+        if self.cipher_selector.choice in RSA_MODES:
+            RSAKeyDialog(self, key=self.rsa_key, on_apply=self._set_rsa_key)
+        else:
+            self.show_book_key_dialog()
+
+    def _set_rsa_key(self, key):
+        self.rsa_key = key
+        kind = "пару ключів" if key.has_private else "лише відкритий ключ"
+        self._set_status(f"RSA: задано {kind}, n = {key.bits} біт")
 
     def show_book_key_dialog(self):
         BookKeyDialog(
@@ -193,10 +213,13 @@ class CipherApp(ctk.CTk):
     def _current_key(self):
         if self.cipher_selector.choice in BOOK_MODES:
             return self.book_text
+        if self.cipher_selector.choice in RSA_MODES:
+            return self.rsa_key
         return self.key_entry.get().strip()
 
     def _on_mode_change(self, choice: str):
         is_book = choice in BOOK_MODES
+        is_rsa = choice in RSA_MODES
         symmetric = parse_symmetric(choice)
 
         if symmetric and symmetric[1] != "ECB":
@@ -204,12 +227,15 @@ class CipherApp(ctk.CTk):
         else:
             self.iv_holder.pack_forget()
 
-        if is_book:
+        if is_book or is_rsa:
             self.key_entry.pack_forget()
             self.book_btn.pack(side="left", padx=4, pady=6)
-            self.book_btn.configure(
-                text="Вибрати вірш..." if choice == BOOK_POEM else "Вибрати текст книги.."
-            )
+            if is_rsa:
+                self.book_btn.configure(text="Ключі RSA...")
+            else:
+                self.book_btn.configure(
+                    text="Вибрати вірш..." if choice == BOOK_POEM else "Вибрати текст книги.."
+                )
         else:
             self.book_btn.pack_forget()
             self.key_entry.pack(side="left", padx=4, pady=6)
@@ -222,6 +248,10 @@ class CipherApp(ctk.CTk):
         elif is_book:
             self.key_label.configure(text="Ключ задається кнопкою:")
             self.attack_btn.configure(state="disabled")
+
+        elif is_rsa:
+            self.key_label.configure(text="Ключі задаються кнопкою:")
+            self.attack_btn.configure(state="normal")
 
         elif symmetric:
             label, key_example, iv_example = SYMMETRIC_HINTS[symmetric[0]]
@@ -256,6 +286,9 @@ class CipherApp(ctk.CTk):
         if symmetric:
             algorithm, mode = symmetric
             return SymmetricCipher(algorithm, mode, iv=self.iv_entry.get().strip())
+
+        if choice in RSA_MODES:
+            return RSACipher(RSA_MODES[choice])
 
         if choice == "Цезар":
             return TextCaesarCipher()
